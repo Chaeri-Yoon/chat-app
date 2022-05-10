@@ -4,7 +4,12 @@ import { Server } from 'socket.io';
 
 const app = express();
 const httpServer = createServer(app);
-const server = new Server(httpServer);
+const server = new Server(httpServer, {
+    cors: {
+        origin: '*',
+        methods: ["GET", "POST"]
+    }
+});
 server.on("connection", socket => {
     console.log(`${socket.id} is connected`);
     socket.on("disconnect", () => console.log(`${socket.id} is disconnected`));

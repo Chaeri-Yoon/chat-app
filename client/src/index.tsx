@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Chatroom from './components/Chatroom';
 import EnterForm from './components/EnterForm';
-import GlobalStyle from './components/GlobalStyle';
+import GlobalStyle from './styles/GlobalStyle';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(

@@ -1,4 +1,5 @@
 import { createGlobalStyle } from "styled-components";
+import styles from "./styles";
 const GlobalStyle = createGlobalStyle`
     /* http://meyerweb.com/eric/tools/css/reset/ 
     v2.0 | 20110126
@@ -17,7 +18,7 @@ const GlobalStyle = createGlobalStyle`
     article, aside, canvas, details, embed, 
     figure, figcaption, footer, header, hgroup, 
     menu, nav, output, ruby, section, summary,
-    time, mark, audio, video {
+    time, mark, audio, video, button {
         margin: 0;
         padding: 0;
         border: 0;
@@ -52,15 +53,27 @@ const GlobalStyle = createGlobalStyle`
     /* Customizing */
     *{
         box-sizing: border-box;
+        color: ${styles.textGrey};
     }
     body{
         width: 100%;
         height: 100vh;
+        & > div{
+            width: 100%;
+            height: 100%;
+        }
     }
     button{
         border: none;
         background-color: transparent;
         cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    button:hover{
+        transform: scale(1.05);
+    }
+    button:active{
+        transform: scale(0.95);
     }
 `;
 

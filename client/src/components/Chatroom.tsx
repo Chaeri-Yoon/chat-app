@@ -7,6 +7,7 @@ export default () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { nickname, avatarNum } = useLocation()?.state as IEnterForm || { nickname: '', avatarNum: '' };
+
     useEffect(() => { if (nickname === '' || avatarNum.toString() === '') navigate('/'); }, [location]);
 
     return (

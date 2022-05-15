@@ -26,8 +26,7 @@ const AvatarContainer = styled.div`
     border-radius: 10px;
 `;
 
-const Avatar = styled.img<{ index: number }>
-    `
+const Avatar = styled.img<{ index: number }>`
     width: 100%;
     aspect-ratio: 1 / 1;
     background-image: url(/avatars/avatar_${props => props.index}.png);

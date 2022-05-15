@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import { messageType, socketEvent } from './type.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -12,7 +13,20 @@ const server = new Server(httpServer, {
 });
 server.on("connection", socket => {
     console.log(`${socket.id} is connected`);
-    socket.on("disconnect", () => console.log(`${socket.id} is disconnected`));
+    socket.on(socketEvent.ENTER_ROOM, ({ nickname, avatarNum }) => {
+        socket.nickname = nickname;
+        socket.avatarNum = avatarNum;
+        socket.broadcast.emit(socketEvent.ENTER_ROOM, { type: messageType.ENTER, text: `${nickname} entered room.`, sender: { nickname, avatarNum } });
+    });
+    socket.on(socketEvent.DISCONNECT, () => socket.broadcast.emit(socketEvent.EXIT_ROOM, { type: messageType.LEAVE, text: `${socket.nickname} left room.` }));
+    socket.on(socketEvent.SEND_MESSAGE,
+        ({ text }) => socket.broadcast.emit(socketEvent.RECEIVE_MESSAGE,
+            {
+                type: messageType.CHAT,
+                text,
+                sender: { nickname: socket.nickname, avatarNum: socket.avatarNum }
+            }
+        ))
 })
 
 httpServer.listen(process.env.SERVER_PORT | 3000, () => console.log(`Server is running on Port ${process.env.SERVER_PORT | 3000}`));

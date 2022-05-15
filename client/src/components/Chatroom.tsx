@@ -1,16 +1,88 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import { IEnterForm } from '../interface';
+import { IMessage, IUserInfo, socketEvent } from '../type';
+import socket from "../utils/client";
+import styled from "styled-components";
 
-
+const Container = styled.div`
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+`;
+const Form = styled.form`
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+`;
+const Chats = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`;
+const Messages = styled.ul`
+  width: 100%;
+  height: calc(100vh - 50px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: scroll;
+  list-style-type: none;
+`;
+const ReceiveMessage = styled.li`
+    align-self: flex-start;
+`;
+const MyMessage = styled.li`
+    align-self: flex-end;
+`;
+const EnterLeftRoomMessage = styled.span`
+    align-self: center;
+`;
 export default () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { nickname, avatarNum } = useLocation()?.state as IEnterForm || { nickname: '', avatarNum: '' };
-
+    const { nickname, avatarNum } = useLocation()?.state as IUserInfo || { nickname: '', avatarNum: '' };
+    const [enterChat, setEnterChat] = useState('');
+    const [messages, setMessages] = useState<IMessage[]>([]);
     useEffect(() => { if (nickname === '' || avatarNum.toString() === '') navigate('/'); }, [location]);
-
+    useEffect(() => { socket.emit(socketEvent.enter_room, { nickname, avatarNum }) }, []);
+    useEffect(() => {
+        socket.on(socketEvent.receive_message, (data: IMessage) => setMessages(prev => [...prev, data]));
+        socket.on(socketEvent.exit_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+        socket.on(socketEvent.enter_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+    }, [socket]);
+    const onChangeEnterChat = (event: React.ChangeEvent<HTMLInputElement>) => setEnterChat(event.target.value);
+    const sendMessage = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        socket.emit(socketEvent.send_message, { text: enterChat });
+        setMessages(prev => [...prev, { type: "myChat", text: enterChat }]);
+        setEnterChat('');
+    }
     return (
-        <div>Chatroom</div>
+        <Container>
+            <Chats>
+                {nickname && (nickname !== '') && <span>{`${nickname} entered this room.`}</span>}
+                <Messages>
+                    {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
+                        message.type === 'chat'
+                            ? <ReceiveMessage key={i}>{message.text}</ReceiveMessage>
+                            : (
+                                message.type === 'myChat'
+                                    ? <MyMessage key={i}>{message.text}</MyMessage>
+                                    : <EnterLeftRoomMessage key={i}>{message.text}</EnterLeftRoomMessage>
+                            )
+                    ))}
+                </Messages>
+            </Chats>
+            <Form onSubmit={sendMessage}>
+                <input onChange={onChangeEnterChat} value={enterChat} placeholder="Message" />
+                <button>Send Message</button>
+            </Form>
+        </Container>
     )
 }

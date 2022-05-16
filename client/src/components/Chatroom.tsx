@@ -69,12 +69,15 @@ export default () => {
     const [enterChat, setEnterChat] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
     useEffect(() => { if (nickname === '' || avatarNum.toString() === '') navigate('/'); }, [location]);
-    useEffect(() => { socket.emit(socketEvent.enter_room, { nickname, avatarNum }) }, []);
     useEffect(() => {
-        socket.on(socketEvent.receive_message, (data: IMessage) => setMessages(prev => [...prev, data]));
-        socket.on(socketEvent.exit_room, (data: IMessage) => setMessages(prev => [...prev, data]));
-        socket.on(socketEvent.enter_room, (data: IMessage) => setMessages(prev => [...prev, data]));
-    }, [socket]);
+        socket.open();
+        socket.on('connect', () => {
+            socket.emit(socketEvent.enter_room, { nickname, avatarNum });
+            socket.on(socketEvent.receive_message, (data: IMessage) => setMessages(prev => [...prev, data]));
+            socket.on(socketEvent.exit_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+            socket.on(socketEvent.enter_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+        });
+    }, []);
     const onChangeEnterChat = (event: React.ChangeEvent<HTMLInputElement>) => setEnterChat(event.target.value);
     const sendMessage = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

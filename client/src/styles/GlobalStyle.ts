@@ -63,17 +63,28 @@ const GlobalStyle = createGlobalStyle`
             height: 100%;
         }
     }
-    button{
+    button, input{
         border: none;
+        outline: none;
+        border-radius: 3px;
+    }
+    input{
+        padding: 8px;
+        color: ${styles.textGrey};
+        &::placeholder{
+            color: ${styles.lightGrey};
+        }
+    }
+    button{
         background-color: transparent;
         cursor: pointer;
-        transition: all 0.3s ease-in-out;
+        transition: all 0.1s ease-in-out;
     }
     button:hover{
-        transform: scale(1.05);
+        transform: scale(1.02);
     }
     button:active{
-        transform: scale(0.95);
+        transform: scale(0.98);
     }
 `;
 

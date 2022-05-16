@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { IMessage, IUserInfo, socketEvent } from '../type';
 import socket from "../utils/client";
 import styled from "styled-components";
+import styles from "../styles/styles";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
     position: relative;
@@ -11,18 +14,18 @@ const Container = styled.div`
     display: flex;
     justify-content: center;
 `;
-const Form = styled.form`
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
+const EnterLeftRoomMessage = styled.span`
+    align-self: center;
 `;
 const Chats = styled.div`
+    padding: 8px;
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    & > ${EnterLeftRoomMessage}{
+        margin-bottom: 8px;
+    }
 `;
 const Messages = styled.ul`
   width: 100%;
@@ -40,8 +43,24 @@ const ReceiveMessage = styled.li`
 const MyMessage = styled.li`
     align-self: flex-end;
 `;
-const EnterLeftRoomMessage = styled.span`
-    align-self: center;
+const Form = styled.form`
+    padding: 8px 15px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: ${styles.lightGrey};
+`;
+const EnterChat = styled.input`
+    flex: 1;
+`;
+const SendMessageButton = styled.button`
+    margin-left: 8px;
+    width: 30px;
+    aspect-ratio: 1 / 1;
+    background-color: ${styles.darkGrey};
+    color: white;
 `;
 export default () => {
     const navigate = useNavigate();
@@ -66,7 +85,7 @@ export default () => {
     return (
         <Container>
             <Chats>
-                {nickname && (nickname !== '') && <span>{`${nickname} entered this room.`}</span>}
+                {nickname && (nickname !== '') && <EnterLeftRoomMessage>{`${nickname} entered this room.`}</EnterLeftRoomMessage>}
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
                         message.type === 'chat'
@@ -80,8 +99,8 @@ export default () => {
                 </Messages>
             </Chats>
             <Form onSubmit={sendMessage}>
-                <input onChange={onChangeEnterChat} value={enterChat} placeholder="Message" />
-                <button>Send Message</button>
+                <EnterChat onChange={onChangeEnterChat} value={enterChat} placeholder="Message" />
+                <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
             </Form>
         </Container>
     )

@@ -37,7 +37,6 @@ const Avatar = styled.img<{ index: number }>`
 `;
 const Nickname = styled.input`
     width: 50%;
-    padding: 8px 15px;
     border: 1px ${styles.lightGrey} solid;
 `;
 

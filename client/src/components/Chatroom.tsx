@@ -64,12 +64,14 @@ const SendMessageButton = styled.button`
 `;
 export default () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { nickname, avatarNum } = useLocation()?.state as IUserInfo || { nickname: '', avatarNum: '' };
     const [enterChat, setEnterChat] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
-    useEffect(() => { if (nickname === '' || avatarNum.toString() === '') navigate('/'); }, [location]);
     useEffect(() => {
+        if (nickname === '' || avatarNum.toString() === '') {
+            navigate('/');
+            return;
+        }
         socket.open();
         socket.on('connect', () => {
             socket.emit(socketEvent.enter_room, { nickname, avatarNum });

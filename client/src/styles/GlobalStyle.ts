@@ -77,13 +77,15 @@ const GlobalStyle = createGlobalStyle`
     }
     button{
         background-color: transparent;
-        cursor: pointer;
         transition: all 0.1s ease-in-out;
     }
-    button:hover{
+    button:not(:disabled){
+        cursor: pointer;
+    }
+    button:not(:disabled):hover{
         transform: scale(1.02);
     }
-    button:active{
+    button:not(:disabled):active{
         transform: scale(0.98);
     }
 `;

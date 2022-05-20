@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
-import { IMessage, IUserInfo, socketEvent } from '../type';
 import socket from "../utils/client";
 import styled from "styled-components";
-import styles from "../styles/styles";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import styles from "../styles/styles";
+import { IMessage, IUserInfo, socketEvent } from '../type';
+import Chat from "./Chat";
 
 const Container = styled.div`
     position: relative;
@@ -36,12 +37,9 @@ const Messages = styled.ul`
   align-items: center;
   overflow-y: scroll;
   list-style-type: none;
-`;
-const ReceiveMessage = styled.li`
-    align-self: flex-start;
-`;
-const MyMessage = styled.li`
-    align-self: flex-end;
+  & > *{
+      margin-bottom: 8px;
+  }
 `;
 const Form = styled.form`
     padding: 8px 15px;
@@ -84,7 +82,7 @@ export default () => {
     const sendMessage = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         socket.emit(socketEvent.send_message, { text: enterChat });
-        setMessages(prev => [...prev, { type: "myChat", text: enterChat }]);
+        setMessages(prev => [...prev, { type: "myChat", content: { text: enterChat } }]);
         setEnterChat('');
     }
     return (
@@ -93,13 +91,9 @@ export default () => {
                 {nickname && (nickname !== '') && <EnterLeftRoomMessage>{`${nickname} entered this room.`}</EnterLeftRoomMessage>}
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
-                        message.type === 'chat'
-                            ? <ReceiveMessage key={i}>{message.text}</ReceiveMessage>
-                            : (
-                                message.type === 'myChat'
-                                    ? <MyMessage key={i}>{message.text}</MyMessage>
-                                    : <EnterLeftRoomMessage key={i}>{message.text}</EnterLeftRoomMessage>
-                            )
+                        (message.type === 'chat' || message.type === 'myChat')
+                            ? <Chat key={i} {...message} />
+                            : <EnterLeftRoomMessage key={i}>{message?.content?.text}</EnterLeftRoomMessage>
                     ))}
                 </Messages>
             </Chats>

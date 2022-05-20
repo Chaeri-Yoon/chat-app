@@ -10,6 +10,9 @@ export interface IUserInfo {
 }
 export interface IMessage {
     type: 'enter' | 'leave' | 'chat' | 'myChat',
+    content?: IMessageContent
+}
+export interface IMessageContent {
     text?: string,
     sender?: IUserInfo
 }

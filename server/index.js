@@ -16,15 +16,17 @@ server.on("connection", socket => {
     socket.on(socketEvent.ENTER_ROOM, ({ nickname, avatarNum }) => {
         socket.nickname = nickname;
         socket.avatarNum = avatarNum;
-        socket.broadcast.emit(socketEvent.ENTER_ROOM, { type: messageType.ENTER, text: `${nickname} entered room.`, sender: { nickname, avatarNum } });
+        socket.broadcast.emit(socketEvent.ENTER_ROOM, { type: messageType.ENTER, content: { text: `${nickname} entered room.`, sender: { nickname, avatarNum } } });
     });
-    socket.on(socketEvent.DISCONNECT, () => socket.broadcast.emit(socketEvent.EXIT_ROOM, { type: messageType.LEAVE, text: `${socket.nickname} left room.` }));
+    socket.on(socketEvent.DISCONNECT, () => socket.broadcast.emit(socketEvent.EXIT_ROOM, { type: messageType.LEAVE, content: { text: `${socket.nickname} left room.` } }));
     socket.on(socketEvent.SEND_MESSAGE,
         ({ text }) => socket.broadcast.emit(socketEvent.RECEIVE_MESSAGE,
             {
                 type: messageType.CHAT,
-                text,
-                sender: { nickname: socket.nickname, avatarNum: socket.avatarNum }
+                content: {
+                    text,
+                    sender: { nickname: socket.nickname, avatarNum: socket.avatarNum }
+                }
             }
         ))
 })

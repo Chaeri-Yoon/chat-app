@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from "styled-components";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import AvatarContainer from "./AvatarContainer";
 
 const Form = styled.form`
     width: 80%;
@@ -18,22 +19,6 @@ const Form = styled.form`
 `;
 const Button = styled.button`
     width: 10%;
-`;
-const AvatarContainer = styled.div`
-    background-color: ${styles.darkGrey};
-    margin: 10px;
-    aspect-ratio: 1 / 1;
-    border-radius: 10px;
-`;
-
-const Avatar = styled.img<{ index: number }>`
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background-image: url(/avatars/avatar_${props => props.index}.png);
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-    border-radius: 10px;
 `;
 const Nickname = styled.input`
     width: 50%;
@@ -52,11 +37,7 @@ export default () => {
     }
     return (
         <Form onSubmit={onFormSubmit}>
-            <Button type="button" onClick={onChangeAvatar}>
-                <AvatarContainer>
-                    <Avatar index={avatarNum} />
-                </AvatarContainer>
-            </Button>
+            <AvatarContainer index={avatarNum} clickHandler={onChangeAvatar} />
             <Nickname onChange={onChangeNickname} placeholder="Enter nickname" required />
             <Button type="submit"><FontAwesomeIcon icon={faArrowRight} /></Button>
         </Form>

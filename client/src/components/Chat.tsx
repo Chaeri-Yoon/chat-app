@@ -8,7 +8,7 @@ const Message = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    font-size: small;
+    font-size: x-small;
 `;
 const Container = styled.li<{ messageType: string }>`
     align-self: ${props => props.messageType === 'chat' ? 'flex-start' : 'flex-end'};

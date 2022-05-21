@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
 import socket from "../utils/client";
 import styled from "styled-components";
@@ -17,25 +17,32 @@ const Container = styled.div`
 `;
 const EnterLeftRoomMessage = styled.span`
     align-self: center;
+    font-size: small;
 `;
 const Chats = styled.div`
     padding: 8px;
     width: 100%;
+    height: calc(100vh - 50px);
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: scroll;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
     & > ${EnterLeftRoomMessage}{
         margin-bottom: 8px;
+    }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    &::-webkit-scrollbar{
+        display: none;
     }
 `;
 const Messages = styled.ul`
   width: 100%;
-  height: calc(100vh - 50px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  overflow-y: scroll;
   list-style-type: none;
   & > *{
       margin-bottom: 8px;
@@ -65,6 +72,7 @@ export default () => {
     const { nickname, avatarNum } = useLocation()?.state as IUserInfo || { nickname: '', avatarNum: '' };
     const [enterChat, setEnterChat] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
+    const chatbox = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (nickname === '' || avatarNum.toString() === '') {
             navigate('/');
@@ -78,6 +86,7 @@ export default () => {
             socket.on(socketEvent.enter_room, (data: IMessage) => setMessages(prev => [...prev, data]));
         });
     }, []);
+    useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
     const onChangeEnterChat = (event: React.ChangeEvent<HTMLInputElement>) => setEnterChat(event.target.value);
     const sendMessage = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -87,7 +96,7 @@ export default () => {
     }
     return (
         <Container>
-            <Chats>
+            <Chats ref={chatbox}>
                 {nickname && (nickname !== '') && <EnterLeftRoomMessage>{`${nickname} entered this room.`}</EnterLeftRoomMessage>}
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (

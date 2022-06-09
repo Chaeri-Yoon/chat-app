@@ -63,12 +63,12 @@ const GlobalStyle = createGlobalStyle`
             height: 100%;
         }
     }
-    button, input{
+    button, input, textarea, select{
         border: none;
         outline: none;
         border-radius: 3px;
     }
-    input{
+    input, textarea{
         padding: 8px;
         color: ${styles.textGrey};
         &::placeholder{

@@ -53,16 +53,35 @@ const Form = styled.form`
     position: absolute;
     bottom: 0;
     width: 100%;
+    height: 15%;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     background-color: ${styles.lightGrey};
+    @media only screen and (max-width: 1024px) {
+        height: 10%;
+    }
 `;
-const EnterChat = styled.input`
+const EnterChat = styled.div`
     flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+`;
+const SelectChatType = styled.select`
+    width: 10%;
+    padding: 8px;
+`;
+const TextArea = styled.textarea`
+    height: 100%;
+    flex: 1;
+    margin: 0 8px;
+    overflow-wrap: break-word;
 `;
 const SendMessageButton = styled.button`
-    margin-left: 8px;
-    width: 30px;
+    width: 34px;
+    padding: 8px 0;
     aspect-ratio: 1 / 1;
     background-color: ${styles.darkGrey};
     color: white;
@@ -73,6 +92,7 @@ export default () => {
     const [enterChat, setEnterChat] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
     const chatbox = useRef<HTMLDivElement>(null);
+    const form = useRef<HTMLFormElement>(null);
     useEffect(() => {
         if (nickname === '' || avatarNum.toString() === '') {
             navigate('/');
@@ -87,9 +107,15 @@ export default () => {
         });
     }, []);
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
-    const onChangeEnterChat = (event: React.ChangeEvent<HTMLInputElement>) => setEnterChat(event.target.value);
-    const sendMessage = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const onChangeEnterChat = (event: React.ChangeEvent<HTMLTextAreaElement>) => setEnterChat(event.target.value);
+    const onTextareaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+    const sendMessage = () => {
+        if (enterChat === '') return;
         socket.emit(socketEvent.send_message, { text: enterChat });
         setMessages(prev => [...prev, { type: "myChat", content: { text: enterChat } }]);
         setEnterChat('');
@@ -106,8 +132,13 @@ export default () => {
                     ))}
                 </Messages>
             </Chats>
-            <Form onSubmit={sendMessage}>
-                <EnterChat onChange={onChangeEnterChat} value={enterChat} placeholder="Message" />
+            <Form onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+                sendMessage();
+            }} ref={form}>
+                <EnterChat>
+                    <TextArea onChange={onChangeEnterChat} onKeyDown={onTextareaKeyDown} value={enterChat} placeholder="Message" />
+                </EnterChat>
                 <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
             </Form>
         </Container>

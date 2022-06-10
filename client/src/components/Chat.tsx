@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import styles from "../styles/styles";
-import { IMessage } from "../type";
+import { IMessage } from "../types";
 import AvatarContainer from "./AvatarContainer";
 
 const Message = styled.div`

@@ -68,7 +68,7 @@ const GlobalStyle = createGlobalStyle`
         outline: none;
         border-radius: 3px;
     }
-    input, textarea{
+    input, textarea, select{
         padding: 8px;
         color: ${styles.textGrey};
         &::placeholder{
@@ -83,10 +83,10 @@ const GlobalStyle = createGlobalStyle`
         cursor: pointer;
     }
     button:not(:disabled):hover{
-        transform: scale(1.02);
+        transform: scale(1.01);
     }
     button:not(:disabled):active{
-        transform: scale(0.98);
+        transform: scale(0.99);
     }
 `;
 

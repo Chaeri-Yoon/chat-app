@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
-import { IMessage, IUserInfo, socketEvent } from '../type';
+import { IMessage, IUserInfo, socketEvent } from '../types';
 import Chat from "./Chat";
 
 const Container = styled.div`
@@ -15,7 +15,7 @@ const Container = styled.div`
     display: flex;
     justify-content: center;
 `;
-const EnterLeftRoomMessage = styled.span`
+const JoinLeftRoomMessage = styled.span`
     align-self: center;
     font-size: small;
 `;
@@ -29,7 +29,7 @@ const Chats = styled.div`
     overflow-y: scroll;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
-    & > ${EnterLeftRoomMessage}{
+    & > ${JoinLeftRoomMessage}{
         margin-bottom: 8px;
     }
     /* Hide scrollbar for Chrome, Safari and Opera */
@@ -89,7 +89,7 @@ const SendMessageButton = styled.button`
 export default () => {
     const navigate = useNavigate();
     const { nickname, avatarNum } = useLocation()?.state as IUserInfo || { nickname: '', avatarNum: '' };
-    const [enterChat, setEnterChat] = useState('');
+    const [joinChat, setJoinChat] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
     const chatbox = useRef<HTMLDivElement>(null);
     const form = useRef<HTMLFormElement>(null);
@@ -100,14 +100,14 @@ export default () => {
         }
         socket.open();
         socket.on('connect', () => {
-            socket.emit(socketEvent.enter_room, { nickname, avatarNum });
+            socket.emit(socketEvent.join_room, { nickname, avatarNum });
             socket.on(socketEvent.receive_message, (data: IMessage) => setMessages(prev => [...prev, data]));
             socket.on(socketEvent.exit_room, (data: IMessage) => setMessages(prev => [...prev, data]));
-            socket.on(socketEvent.enter_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+            socket.on(socketEvent.join_room, (data: IMessage) => setMessages(prev => [...prev, data]));
         });
     }, []);
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
-    const onChangeEnterChat = (event: React.ChangeEvent<HTMLTextAreaElement>) => setEnterChat(event.target.value);
+    const onChangeJoinChat = (event: React.ChangeEvent<HTMLTextAreaElement>) => setJoinChat(event.target.value);
     const onTextareaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -115,20 +115,20 @@ export default () => {
         }
     }
     const sendMessage = () => {
-        if (enterChat === '') return;
-        socket.emit(socketEvent.send_message, { text: enterChat });
-        setMessages(prev => [...prev, { type: "myChat", content: { text: enterChat } }]);
-        setEnterChat('');
+        if (joinChat === '') return;
+        socket.emit(socketEvent.send_message, { text: joinChat });
+        setMessages(prev => [...prev, { type: "myChat", content: { text: joinChat } }]);
+        setJoinChat('');
     }
     return (
         <Container>
             <Chats ref={chatbox}>
-                {nickname && (nickname !== '') && <EnterLeftRoomMessage>{`${nickname} entered this room.`}</EnterLeftRoomMessage>}
+                {nickname && (nickname !== '') && <JoinLeftRoomMessage>{`${nickname} joined this room.`}</JoinLeftRoomMessage>}
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
                         (message.type === 'chat' || message.type === 'myChat')
                             ? <Chat key={i} {...message} />
-                            : <EnterLeftRoomMessage key={i}>{message?.content?.text}</EnterLeftRoomMessage>
+                            : <JoinLeftRoomMessage key={i}>{message?.content?.text}</JoinLeftRoomMessage>
                     ))}
                 </Messages>
             </Chats>
@@ -137,7 +137,7 @@ export default () => {
                 sendMessage();
             }} ref={form}>
                 <EnterChat>
-                    <TextArea onChange={onChangeEnterChat} onKeyDown={onTextareaKeyDown} value={enterChat} placeholder="Message" />
+                    <TextArea onChange={onChangeJoinChat} onKeyDown={onTextareaKeyDown} value={joinChat} placeholder="Message" />
                 </EnterChat>
                 <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
             </Form>

@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import styled from "styled-components";
 import styles from "../styles/styles";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import AvatarContainer from "./AvatarContainer";
-import { IDataState } from "../types";
+import { IDataState, socketEvent } from "../types";
+import socket from "../utils/client";
 
 const Form = styled.form`
     width: 80%;
@@ -89,9 +90,13 @@ export default () => {
             avatarNum: 0,
             nickname: '',
         },
+        room: '',
+        roomList: [],
         chatroomMode: 'Select'
     });
-    const { user: { avatarNum } } = dataState;
+    useEffect(() => {
+        socket.on(socketEvent.UPDATE_ROOMLIST, ({ rooms }) => setDataState(prev => ({ ...prev, roomList: [...rooms] })));
+    }, [socket]);
     const handleChangeAvatar = () => {
         setDataState(prev => {
             const user = { ...prev.user, avatarNum: (prev.user.avatarNum + 1) % 3 };
@@ -104,30 +109,38 @@ export default () => {
             return { ...prev, user };
         })
     }
-    const handleSelectChatroom = (event: React.ChangeEvent<HTMLSelectElement>) => event.target.value === 'create' && setDataState(prev => ({ ...prev, chatroomMode: 'Create' }));
-    const handleChangeChatroomMode = () => setDataState(prev => ({ ...prev, chatroomMode: 'Select' }));
+    const handleWriteRoomName = (event: React.ChangeEvent<HTMLInputElement>) => setDataState(prev => ({ ...prev, room: event?.target.value }));
+    const handleChangeChatroomMode = (event: React.ChangeEvent<HTMLSelectElement> | React.MouseEvent<HTMLButtonElement>) => {
+        if (dataState.chatroomMode === 'Select') {
+            const { value } = event.target as HTMLSelectElement;
+            if (value === 'create') setDataState(prev => ({ ...prev, chatroomMode: 'Create' }));
+            else setDataState(prev => ({ ...prev, room: value }));
+        }
+        else if (dataState.chatroomMode === 'Create') setDataState(prev => ({ ...prev, chatroomMode: 'Select' }));
+    }
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const { nickname, avatarNum } = dataState.user;
-        navigate('/chatroom', { state: { nickname, avatarNum } });
+        const { user: { nickname, avatarNum }, room } = dataState;
+        socket.emit(socketEvent.JOIN_ROOM, { nickname, avatarNum, room }, () => navigate('/chatroom', { state: { nickname, avatarNum, room } }));
     }
     return (
         <Form onSubmit={handleSubmit}>
             <InputContainer>
                 <Nickname>
-                    <AvatarContainer index={avatarNum} clickHandler={handleChangeAvatar} />
+                    <AvatarContainer index={dataState.user.avatarNum} clickHandler={handleChangeAvatar} />
                     <input onChange={handleChangeNickname} placeholder="Enter nickname" required />
                 </Nickname>
                 <Room>
                     {dataState?.chatroomMode === 'Select' ? (
-                        <SelectRoom onChange={handleSelectChatroom} defaultValue='default'>
+                        <SelectRoom onChange={handleChangeChatroomMode} defaultValue='default'>
                             <option value="default" disabled>--Select Room--</option>
+                            {dataState?.roomList?.map(room => <option value={room}>{room}</option>)}
                             <option value="create">Create Room</option>
                         </SelectRoom>
                     ) : (
                         <CreateRoom>
                             <CreateRoomInputs>
-                                <input placeholder="Enter room name" type="text" />
+                                <input onChange={handleWriteRoomName} placeholder="Enter room name" type="text" />
                                 <button type="button" onClick={handleChangeChatroomMode}><FontAwesomeIcon icon={faCaretDown} /></button>
                             </CreateRoomInputs>
                             <MessageRoomExist>Default</MessageRoomExist>

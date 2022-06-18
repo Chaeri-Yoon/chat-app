@@ -88,42 +88,25 @@ const SendMessageButton = styled.button`
 `;
 export default () => {
     const navigate = useNavigate();
-    const { nickname, avatarNum } = useLocation()?.state as IUserInfo || { nickname: '', avatarNum: '' };
-    const [joinChat, setJoinChat] = useState('');
+    const { nickname } = useLocation()?.state as IUserInfo
+    const [myNickname, setMyNickname] = useState(nickname);
     const [messages, setMessages] = useState<IMessage[]>([]);
     const chatbox = useRef<HTMLDivElement>(null);
-    const form = useRef<HTMLFormElement>(null);
     useEffect(() => {
-        if (nickname === '' || avatarNum.toString() === '') {
+        if (!nickname) {
             navigate('/');
             return;
         }
-        socket.open();
-        socket.on('connect', () => {
-            socket.emit(socketEvent.join_room, { nickname, avatarNum });
-            socket.on(socketEvent.receive_message, (data: IMessage) => setMessages(prev => [...prev, data]));
-            socket.on(socketEvent.exit_room, (data: IMessage) => setMessages(prev => [...prev, data]));
-            socket.on(socketEvent.join_room, (data: IMessage) => setMessages(prev => [...prev, data]));
+        socket.on(socketEvent.JOIN_ROOM, (userInfo: IUserInfo) => {
+            const data: IMessage = { type: 'join', content: { text: `${userInfo.nickname} joined this room`, sender: userInfo } };
+            setMessages(prev => [...prev, data]);
         });
-    }, []);
+    }, [socket]);
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
-    const onChangeJoinChat = (event: React.ChangeEvent<HTMLTextAreaElement>) => setJoinChat(event.target.value);
-    const onTextareaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            sendMessage();
-        }
-    }
-    const sendMessage = () => {
-        if (joinChat === '') return;
-        socket.emit(socketEvent.send_message, { text: joinChat });
-        setMessages(prev => [...prev, { type: "myChat", content: { text: joinChat } }]);
-        setJoinChat('');
-    }
     return (
         <Container>
             <Chats ref={chatbox}>
-                {nickname && (nickname !== '') && <JoinLeftRoomMessage>{`${nickname} joined this room.`}</JoinLeftRoomMessage>}
+                <JoinLeftRoomMessage>{`${myNickname} joined this room.`}</JoinLeftRoomMessage>
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
                         (message.type === 'chat' || message.type === 'myChat')
@@ -132,12 +115,9 @@ export default () => {
                     ))}
                 </Messages>
             </Chats>
-            <Form onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
-                event.preventDefault();
-                sendMessage();
-            }} ref={form}>
+            <Form>
                 <EnterChat>
-                    <TextArea onChange={onChangeJoinChat} onKeyDown={onTextareaKeyDown} value={joinChat} placeholder="Message" />
+                    <TextArea placeholder="Message" />
                 </EnterChat>
                 <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
             </Form>

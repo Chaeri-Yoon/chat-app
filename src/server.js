@@ -25,14 +25,20 @@ server.on("connection", socket => {
     server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
     console.log(`${socket.id} is connected`);
     socket.on(socketEvent.JOIN_ROOM, ({ nickname, avatarNum, room }, done) => {
-        socket[nickname] = nickname;
-        socket[avatarNum] = avatarNum;
-
+        socket['userInfo'] = { nickname, avatarNum };
         socket.join(room);
-        socket.to(room).emit(socketEvent.JOIN_ROOM, { nickname, avatarNum });
+        socket.to(room).emit(socketEvent.JOIN_ROOM, { nickname });
         server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         done();
     });
+    socket.on('disconnecting', () => {
+        console.log(`${socket.id} is disconnecting`);
+        socket.rooms.forEach(room => {
+            socket.to(room).emit(socketEvent.LEAVE_ROOM, { nickname: socket.nickname });
+            socket.leave(room);
+            server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
+        })
+    })
 })
 
 httpServer.listen(process.env.SERVER_PORT | 4000, () => console.log(`Server is running on Port ${process.env.SERVER_PORT | 4000}`));

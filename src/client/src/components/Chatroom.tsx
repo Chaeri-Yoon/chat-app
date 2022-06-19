@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
-import { IMessage, IUserInfo, socketEvent } from '../types';
+import { IMessage, IUserInfo, socketEvent, MessageType } from '../types';
 import Chat from "./Chat";
 
 const Container = styled.div`
@@ -97,10 +97,14 @@ export default () => {
             navigate('/');
             return;
         }
-        socket.on(socketEvent.JOIN_ROOM, (userInfo: IUserInfo) => {
-            const data: IMessage = { type: 'join', content: { text: `${userInfo.nickname} joined this room`, sender: userInfo } };
+        socket.on(socketEvent.JOIN_ROOM, ({ nickname }) => {
+            const data: IMessage = { type: "join", content: { text: `${nickname} joined this room`, sender: nickname } };
             setMessages(prev => [...prev, data]);
         });
+        socket.on(socketEvent.LEAVE_ROOM, ({ nickname }) => {
+            const data: IMessage = { type: "leave", content: { text: `${nickname} left this room`, sender: nickname } };
+            setMessages(prev => [...prev, data]);
+        })
     }, [socket]);
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
     return (

@@ -1,6 +1,6 @@
 export const socketEvent = {
     JOIN_ROOM: 'join_room',
-    EXIT_ROOM: 'exit_room',
+    LEAVE_ROOM: 'leave_room',
     UPDATE_ROOMLIST: 'update_rooms',
     RECEIVE_MESSAGE: 'receive_message',
     SEND_MESSAGE: 'send_message'
@@ -9,13 +9,14 @@ export interface IUserInfo {
     nickname: String;
     avatarNum: number;
 }
+export type MessageType = 'join' | 'leave' | 'chat' | 'myChat';
 export interface IMessage {
-    type: 'join' | 'leave' | 'chat' | 'myChat';
-    content?: IMessageContent;
+    type: MessageType;
+    content: IMessageContent;
 }
 export interface IMessageContent {
     text: string;
-    sender: IUserInfo;
+    sender: string;
 }
 export interface IDataState {
     user: IUserInfo;

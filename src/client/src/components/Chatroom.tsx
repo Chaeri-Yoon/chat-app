@@ -97,12 +97,12 @@ export default () => {
             navigate('/');
             return;
         }
-        socket.on(socketEvent.JOIN_ROOM, ({ nickname }) => {
-            const data: IMessage = { type: "join", content: { text: `${nickname} joined this room`, sender: nickname } };
+        socket.on(socketEvent.JOIN_ROOM, (userInfo: IUserInfo) => {
+            const data: IMessage = { type: "Join", content: { text: `${userInfo.nickname} joined this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
         });
-        socket.on(socketEvent.LEAVE_ROOM, ({ nickname }) => {
-            const data: IMessage = { type: "leave", content: { text: `${nickname} left this room`, sender: nickname } };
+        socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
+            const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
         })
     }, [socket]);
@@ -113,7 +113,7 @@ export default () => {
                 <JoinLeftRoomMessage>{`${myNickname} joined this room.`}</JoinLeftRoomMessage>
                 <Messages>
                     {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
-                        (message.type === 'chat' || message.type === 'myChat')
+                        (message.type === 'Chat' || message.type === 'MyChat')
                             ? <Chat key={i} {...message} />
                             : <JoinLeftRoomMessage key={i}>{message?.content?.text}</JoinLeftRoomMessage>
                     ))}

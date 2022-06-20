@@ -27,14 +27,14 @@ server.on("connection", socket => {
     socket.on(socketEvent.JOIN_ROOM, ({ nickname, avatarNum, room }, done) => {
         socket['userInfo'] = { nickname, avatarNum };
         socket.join(room);
-        socket.to(room).emit(socketEvent.JOIN_ROOM, { nickname });
+        socket.to(room).emit(socketEvent.JOIN_ROOM, { nickname, avatarNum });
         server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         done();
     });
     socket.on('disconnecting', () => {
         console.log(`${socket.id} is disconnecting`);
         socket.rooms.forEach(room => {
-            socket.to(room).emit(socketEvent.LEAVE_ROOM, { nickname: socket.nickname });
+            socket.to(room).emit(socketEvent.LEAVE_ROOM, { nickname: socket.userInfo?.nickname });
             socket.leave(room);
             server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         })

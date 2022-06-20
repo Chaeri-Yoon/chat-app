@@ -30,9 +30,9 @@ const Text = styled.span`
 export default ({ type, content }: IMessage) => {
     return (
         <Container messageType={type}>
-            {type === 'chat' && <AvatarContainer index={content?.sender?.avatarNum || 0} />}
+            {type === 'Chat' && <AvatarContainer index={content?.sender.avatarNum || 0} />}
             <Message>
-                {type === 'chat' && <Nickname>{content?.sender?.nickname}</Nickname>}
+                {type === 'Chat' && <Nickname>{content?.sender.nickname}</Nickname>}
                 <Text>{content?.text}</Text>
             </Message>
         </Container>

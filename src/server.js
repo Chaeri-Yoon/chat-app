@@ -31,6 +31,9 @@ server.on("connection", socket => {
         server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         done();
     });
+    socket.on(socketEvent.SEND_MESSAGE, ({ message, room }) => {
+        socket.to(room).emit(socketEvent.SEND_MESSAGE, { senderInfo: socket.userInfo, message });
+    });
     socket.on('disconnecting', () => {
         console.log(`${socket.id} is disconnecting`);
         socket.rooms.forEach(room => {

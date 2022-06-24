@@ -5,8 +5,9 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
-import { IMessage, IUserInfo, socketEvent, MessageType } from '../types';
+import { IMessage, IUserInfo, socketEvent } from '../types';
 import Chat from "./Chat";
+import { useForm } from "react-hook-form";
 
 const Container = styled.div`
     position: relative;
@@ -22,7 +23,7 @@ const JoinLeftRoomMessage = styled.span`
 const Chats = styled.div`
     padding: 8px;
     width: 100%;
-    height: calc(100vh - 50px);
+    height: 85%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -69,10 +70,6 @@ const EnterChat = styled.div`
     justify-content: space-between;
     align-items: flex-start;
 `;
-const SelectChatType = styled.select`
-    width: 10%;
-    padding: 8px;
-`;
 const TextArea = styled.textarea`
     height: 100%;
     flex: 1;
@@ -86,12 +83,34 @@ const SendMessageButton = styled.button`
     background-color: ${styles.darkGrey};
     color: white;
 `;
+interface IMessageForm {
+    message: string
+}
+interface IMyInfo {
+    nickname?: string,
+    room?: string
+}
 export default () => {
     const navigate = useNavigate();
-    const { nickname } = useLocation()?.state as IUserInfo
+    const { nickname, room } = useLocation()?.state as IMyInfo;
+    // setMyNickname: For future function - change user's nickname
     const [myNickname, setMyNickname] = useState(nickname);
     const [messages, setMessages] = useState<IMessage[]>([]);
+    const { register, handleSubmit, reset } = useForm<IMessageForm>();
     const chatbox = useRef<HTMLDivElement>(null);
+    const form = useRef<HTMLFormElement>(null);
+    const onMessageEntered = (event: React.KeyboardEvent<HTMLElement>) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            console.log(form.current)
+            form.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+    }
+    const onMessageSubmit = ({ message }: IMessageForm) => {
+        reset();
+        const data: IMessage = { type: "MyChat", content: { text: message } };
+        socket.emit(socketEvent.SEND_MESSAGE, { message, room }, setMessages(prev => [...prev, data]));
+    };
     useEffect(() => {
         if (!nickname) {
             navigate('/');
@@ -103,6 +122,10 @@ export default () => {
         });
         socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
+            setMessages(prev => [...prev, data]);
+        })
+        socket.on(socketEvent.SEND_MESSAGE, ({ senderInfo, message }) => {
+            const data: IMessage = { type: "Chat", content: { text: message, sender: { ...senderInfo } } };
             setMessages(prev => [...prev, data]);
         })
     }, [socket]);
@@ -119,9 +142,9 @@ export default () => {
                     ))}
                 </Messages>
             </Chats>
-            <Form>
+            <Form onSubmit={handleSubmit(onMessageSubmit)} ref={form}>
                 <EnterChat>
-                    <TextArea placeholder="Message" />
+                    <TextArea onKeyDown={onMessageEntered} {...register("message", { required: true })} placeholder="Enter your message" />
                 </EnterChat>
                 <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
             </Form>

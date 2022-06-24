@@ -7,7 +7,7 @@ import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 import AvatarContainer from "./AvatarContainer";
 import { socketEvent } from "../types";
 import socket from "../utils/client";
-import { FieldErrors, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
 const Form = styled.form`
     width: 80%;
@@ -95,7 +95,6 @@ const SelectRoom = styled.select`
 `;
 interface IJoinForm {
     nickname: string;
-    avatarNum: number;
     room: string;
 }
 export default () => {
@@ -119,10 +118,10 @@ export default () => {
     const isRoomnameValid = () => getValues("room") !== (roomJoinMode === 'Create' ? "" : "default") ? true : "Please select an existing room or create one.";
     const isRoomnameDuplicated = () => !roomList?.includes(getValues("room")) ? true : "This room already exists.";
     const onSubmit = (form: IJoinForm) => {
-        const { nickname, avatarNum, room } = form;
+        const { nickname, room } = form;
         socket.emit(socketEvent.JOIN_ROOM, { nickname, avatarNum, room }, () => {
             reset();
-            navigate('/chatroom', { state: { nickname, avatarNum, room } });
+            navigate('/chatroom', { state: { nickname, room } });
         });
     }
     return (

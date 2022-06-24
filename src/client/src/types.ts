@@ -17,5 +17,5 @@ export interface IMessage {
 }
 interface IMessageContent {
     text: string;
-    sender: IUserInfo;
+    sender?: IUserInfo;
 }

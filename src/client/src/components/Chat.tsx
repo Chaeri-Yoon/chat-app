@@ -11,13 +11,13 @@ const Message = styled.div`
     font-size: x-small;
 `;
 const Container = styled.li<{ messageType: string }>`
-    align-self: ${props => props.messageType === 'chat' ? 'flex-start' : 'flex-end'};
+    align-self: ${props => props.messageType === 'Chat' ? 'flex-start' : 'flex-end'};
     width: 50%;
     display: flex;
-    justify-content: ${props => props.messageType === 'chat' ? 'flex-start' : 'flex-end'};
+    justify-content: ${props => props.messageType === 'Chat' ? 'flex-start' : 'flex-end'};
     align-items: flex-start;
     & > ${Message}{
-        align-items: ${props => props.messageType === 'chat' ? 'flex-start' : 'flex-end'};
+        align-items: ${props => props.messageType === 'Chat' ? 'flex-start' : 'flex-end'};
     }
 `;
 const Nickname = styled.span`
@@ -30,9 +30,9 @@ const Text = styled.span`
 export default ({ type, content }: IMessage) => {
     return (
         <Container messageType={type}>
-            {type === 'Chat' && <AvatarContainer index={content?.sender.avatarNum || 0} />}
+            {type === 'Chat' && <AvatarContainer index={content?.sender?.avatarNum || 0} />}
             <Message>
-                {type === 'Chat' && <Nickname>{content?.sender.nickname}</Nickname>}
+                {type === 'Chat' && <Nickname>{content?.sender?.nickname}</Nickname>}
                 <Text>{content?.text}</Text>
             </Message>
         </Container>

@@ -44,4 +44,4 @@ server.on("connection", socket => {
     })
 })
 
-httpServer.listen(process.env.SERVER_PORT | 4000, () => console.log(`Server is running on Port ${process.env.SERVER_PORT | 4000}`));
+httpServer.listen(process.env.SERVER_PORT, () => console.log(`Server is running on Port ${process.env.SERVER_PORT}`));

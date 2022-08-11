@@ -92,9 +92,10 @@ interface IMyInfo {
 }
 export default () => {
     const navigate = useNavigate();
-    const { nickname, room } = useLocation()?.state as IMyInfo;
+    const userState = useLocation()?.state as IMyInfo;
     // setMyNickname: For future function - change user's nickname
-    const [myNickname, setMyNickname] = useState(nickname);
+    const [myNickname, setMyNickname] = useState("");
+    const [room, setRoom] = useState("");
     const [messages, setMessages] = useState<IMessage[]>([]);
     const { register, handleSubmit, reset } = useForm<IMessageForm>();
     const chatbox = useRef<HTMLDivElement>(null);
@@ -112,9 +113,13 @@ export default () => {
         socket.emit(socketEvent.SEND_MESSAGE, { message, room }, setMessages(prev => [...prev, data]));
     };
     useEffect(() => {
-        if (!nickname) {
+        if (!userState) {
             navigate('/');
             return;
+        }
+        else {
+            setMyNickname(userState.nickname || "");
+            setRoom(userState.room || "");
         }
         socket.on(socketEvent.JOIN_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Join", content: { text: `${userInfo.nickname} joined this room`, sender: { ...userInfo } } };

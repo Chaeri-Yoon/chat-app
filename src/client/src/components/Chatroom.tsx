@@ -3,18 +3,87 @@ import { useLocation, useNavigate } from "react-router-dom";
 import socket from "../utils/client";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faCameraAlt, faCameraRetro, faPaperPlane, faPowerOff, faToggleOff, faVideoCamera, faVolumeMute, faVolumeUp, faX } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
 import { IMessage, IUserInfo, socketEvent } from '../types';
 import Chat from "./Chat";
 import { useForm } from "react-hook-form";
 
 const Container = styled.div`
-    position: relative;
     width: 100%;
     height: 100vh;
     display: flex;
     justify-content: center;
+    align-items: center;
+`;
+const VideoContainer = styled.div`
+    position: relative;
+    flex: 1;
+    height: 100%;
+    background-color: black;
+`;
+const Videos = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 1em;
+    & > video{
+        width: 45%;
+        aspect-ratio: 4 / 3;
+        background-color: #757575;
+    }
+`;
+const MyFace = styled.video``;
+const PeerFace = styled.video``;
+const Settings = styled.div`
+    position: absolute;
+    padding: 0 1em;
+    width: 100%;
+    height: 3em;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #757575;
+`;
+const CameraSettings = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+`;
+const MuteButton = styled.button`
+    position: relative;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    font-size: x-large;
+`;
+const NoVolume = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    & path{
+        color: red;
+    }
+`;
+const CamToggleButton = styled(MuteButton)``;
+const NoCam = styled(NoVolume)``;
+const ExitButton = styled.button`
+    padding: 0 0.7em;
+    aspect-ratio: 2 / 1;
+    background-color: red;
+    color: white;
+    font-size: 1em;
+    font-weight: 600;
+`;
+const ChatContainer = styled.div`
+    position: relative;
+    width: 30%;
+    height: 100%;
 `;
 const JoinLeftRoomMessage = styled.span`
     align-self: center;
@@ -52,6 +121,7 @@ const Messages = styled.ul`
 const Form = styled.form`
     padding: 8px 15px;
     position: absolute;
+    right: 0;
     bottom: 0;
     width: 100%;
     height: 15%;
@@ -64,7 +134,7 @@ const Form = styled.form`
     }
 `;
 const EnterChat = styled.div`
-    flex: 1;
+    width: 100%;
     height: 100%;
     display: flex;
     justify-content: space-between;
@@ -137,22 +207,43 @@ export default () => {
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
     return (
         <Container>
-            <Chats ref={chatbox}>
-                <JoinLeftRoomMessage>{`${myNickname} joined this room.`}</JoinLeftRoomMessage>
-                <Messages>
-                    {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
-                        (message.type === 'Chat' || message.type === 'MyChat')
-                            ? <Chat key={i} {...message} />
-                            : <JoinLeftRoomMessage key={i}>{message?.content?.text}</JoinLeftRoomMessage>
-                    ))}
-                </Messages>
-            </Chats>
-            <Form onSubmit={handleSubmit(onMessageSubmit)} ref={form}>
-                <EnterChat>
-                    <TextArea onKeyDown={onMessageEntered} {...register("message", { required: true })} placeholder="Enter your message" />
-                </EnterChat>
-                <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
-            </Form>
+            <VideoContainer>
+                <Videos>
+                    <MyFace autoPlay={true} playsInline={true} />
+                    <PeerFace autoPlay={true} playsInline={true} />
+                </Videos>
+                <Settings>
+                    <CameraSettings>
+                        <MuteButton>
+                            <NoVolume><FontAwesomeIcon icon={faX} /></NoVolume>
+                            <FontAwesomeIcon icon={faVolumeUp} />
+                        </MuteButton>
+                        <CamToggleButton>
+                            <NoCam><FontAwesomeIcon icon={faX} /></NoCam>
+                            <FontAwesomeIcon icon={faCamera} />
+                        </CamToggleButton>
+                    </CameraSettings>
+                    <ExitButton>Exit</ExitButton>
+                </Settings>
+            </VideoContainer>
+            <ChatContainer>
+                <Chats ref={chatbox}>
+                    <JoinLeftRoomMessage>{`${myNickname} joined this room.`}</JoinLeftRoomMessage>
+                    <Messages>
+                        {messages?.length > 0 && messages.map((message: IMessage, i: number) => (
+                            (message.type === 'Chat' || message.type === 'MyChat')
+                                ? <Chat key={i} {...message} />
+                                : <JoinLeftRoomMessage key={i}>{message?.content?.text}</JoinLeftRoomMessage>
+                        ))}
+                    </Messages>
+                </Chats>
+                <Form onSubmit={handleSubmit(onMessageSubmit)} ref={form}>
+                    <EnterChat>
+                        <TextArea onKeyDown={onMessageEntered} {...register("message", { required: true })} placeholder="Enter your message" />
+                    </EnterChat>
+                    <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
+                </Form>
+            </ChatContainer>
         </Container>
     )
 }

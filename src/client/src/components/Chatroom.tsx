@@ -3,11 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import socket from "../utils/client";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faCameraAlt, faCameraRetro, faPaperPlane, faPowerOff, faToggleOff, faVideoCamera, faVolumeMute, faVolumeUp, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faPaperPlane, faVolumeUp, faX } from "@fortawesome/free-solid-svg-icons";
 import styles from "../styles/styles";
 import { IMessage, IUserInfo, socketEvent } from '../types';
 import Chat from "./Chat";
 import { useForm } from "react-hook-form";
+import peerConnection from "../libs/peerConnection";
 
 const Container = styled.div`
     width: 100%;
@@ -61,7 +62,7 @@ const MuteButton = styled.button`
     aspect-ratio: 1 / 1;
     font-size: x-large;
 `;
-const NoVolume = styled.div`
+const NoStream = styled.div`
     position: absolute;
     top: 50%;
     left: 50%;
@@ -70,8 +71,9 @@ const NoVolume = styled.div`
         color: red;
     }
 `;
+const NoVolume = styled(NoStream)``;
 const CamToggleButton = styled(MuteButton)``;
-const NoCam = styled(NoVolume)``;
+const NoCam = styled(NoStream)``;
 const ExitButton = styled.button`
     padding: 0 0.7em;
     aspect-ratio: 2 / 1;
@@ -153,6 +155,14 @@ const SendMessageButton = styled.button`
     background-color: ${styles.darkGrey};
     color: white;
 `;
+interface IStreamState {
+    isVolumnOn: boolean,
+    isCamOn: boolean
+}
+interface IRtcConnection {
+    handleMuteClick: () => void,
+    handleCameraOnClick: () => void
+}
 interface IMessageForm {
     message: string
 }
@@ -167,17 +177,32 @@ export default () => {
     const [myNickname, setMyNickname] = useState("");
     const [room, setRoom] = useState("");
     const [messages, setMessages] = useState<IMessage[]>([]);
+
+    // Videocall
+    const [rtcState, setRtcState] = useState<IRtcConnection>();
+    const [streamState, setStreamState] = useState<IStreamState>({ isVolumnOn: true, isCamOn: true });
+    const myFace = useRef<HTMLVideoElement>(null);
+    const peerFace = useRef<HTMLVideoElement>(null);
+    const handleMuteClick = () => {
+        setStreamState({ ...streamState, isVolumnOn: !streamState.isVolumnOn });
+        rtcState?.handleMuteClick();
+    };
+    const handleCameraOnClick = () => {
+        setStreamState({ ...streamState, isCamOn: !streamState.isCamOn });
+        rtcState?.handleCameraOnClick();
+    }
+    //
     const { register, handleSubmit, reset } = useForm<IMessageForm>();
     const chatbox = useRef<HTMLDivElement>(null);
     const form = useRef<HTMLFormElement>(null);
-    const onMessageEntered = (event: React.KeyboardEvent<HTMLElement>) => {
+    const handleMessageEntered = (event: React.KeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter") {
             event.preventDefault();
             console.log(form.current)
             form.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         }
     }
-    const onMessageSubmit = ({ message }: IMessageForm) => {
+    const handleMessageSubmit = ({ message }: IMessageForm) => {
         reset();
         const data: IMessage = { type: "MyChat", content: { text: message } };
         socket.emit(socketEvent.SEND_MESSAGE, { message, room }, setMessages(prev => [...prev, data]));
@@ -204,22 +229,30 @@ export default () => {
             setMessages(prev => [...prev, data]);
         })
     }, [socket]);
-    useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages])
+    useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages]);
+    useEffect(() => {
+        if (room !== "") {
+            (async () => {
+                const result = await peerConnection({ room, myFace: myFace.current!, peerFace: peerFace.current! });
+                setRtcState(result);
+            })();
+        }
+    }, [room])
     return (
         <Container>
             <VideoContainer>
                 <Videos>
-                    <MyFace autoPlay={true} playsInline={true} />
-                    <PeerFace autoPlay={true} playsInline={true} />
+                    <MyFace autoPlay={true} playsInline={true} ref={myFace} />
+                    <PeerFace autoPlay={true} playsInline={true} ref={peerFace} />
                 </Videos>
                 <Settings>
                     <CameraSettings>
-                        <MuteButton>
-                            <NoVolume><FontAwesomeIcon icon={faX} /></NoVolume>
+                        <MuteButton onClick={handleMuteClick}>
+                            {!streamState.isVolumnOn && <NoVolume><FontAwesomeIcon icon={faX} /></NoVolume>}
                             <FontAwesomeIcon icon={faVolumeUp} />
                         </MuteButton>
-                        <CamToggleButton>
-                            <NoCam><FontAwesomeIcon icon={faX} /></NoCam>
+                        <CamToggleButton onClick={handleCameraOnClick}>
+                            {!streamState.isCamOn && <NoCam><FontAwesomeIcon icon={faX} /></NoCam>}
                             <FontAwesomeIcon icon={faCamera} />
                         </CamToggleButton>
                     </CameraSettings>
@@ -237,9 +270,9 @@ export default () => {
                         ))}
                     </Messages>
                 </Chats>
-                <Form onSubmit={handleSubmit(onMessageSubmit)} ref={form}>
+                <Form onSubmit={handleSubmit(handleMessageSubmit)} ref={form}>
                     <EnterChat>
-                        <TextArea onKeyDown={onMessageEntered} {...register("message", { required: true })} placeholder="Enter your message" />
+                        <TextArea onKeyDown={handleMessageEntered} {...register("message", { required: true })} placeholder="Enter your message" />
                     </EnterChat>
                     <SendMessageButton><FontAwesomeIcon icon={faPaperPlane} /></SendMessageButton>
                 </Form>

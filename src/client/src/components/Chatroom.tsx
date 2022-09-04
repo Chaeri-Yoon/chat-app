@@ -8,7 +8,7 @@ import styles from "../styles/styles";
 import { IMessage, IUserInfo, socketEvent } from '../types';
 import Chat from "./Chat";
 import { useForm } from "react-hook-form";
-import peerConnection from "../libs/peerConnection";
+import useVideoConnection from "../libs/useVideoConnection";
 
 const Container = styled.div`
     width: 100%;
@@ -155,13 +155,15 @@ const SendMessageButton = styled.button`
     background-color: ${styles.darkGrey};
     color: white;
 `;
+interface IEventFlag {
+    join: boolean,
+    offer: RTCSessionDescriptionInit | null,
+    answer: RTCSessionDescriptionInit | null,
+    ice: RTCIceCandidate | null
+}
 interface IStreamState {
     isVolumnOn: boolean,
     isCamOn: boolean
-}
-interface IRtcConnection {
-    handleMuteClick: () => void,
-    handleCameraOnClick: () => void
 }
 interface IMessageForm {
     message: string
@@ -177,28 +179,32 @@ export default () => {
     const [myNickname, setMyNickname] = useState("");
     const [room, setRoom] = useState("");
     const [messages, setMessages] = useState<IMessage[]>([]);
+    const [eventState, setEventState] = useState<IEventFlag>({
+        join: false,
+        offer: null,
+        answer: null,
+        ice: null,
+    });
 
     // Videocall
-    const [rtcState, setRtcState] = useState<IRtcConnection>();
     const [streamState, setStreamState] = useState<IStreamState>({ isVolumnOn: true, isCamOn: true });
     const myFace = useRef<HTMLVideoElement>(null);
     const peerFace = useRef<HTMLVideoElement>(null);
-    const handleMuteClick = () => {
+    const { handleMuteClick, handleCameraOnClick, makeConnection, peerFunctionState, myStream, peerStream } = useVideoConnection({ room });
+    const onMuteClick = () => {
         setStreamState({ ...streamState, isVolumnOn: !streamState.isVolumnOn });
-        rtcState?.handleMuteClick();
+        handleMuteClick();
     };
-    const handleCameraOnClick = () => {
+    const onCameraOnClick = () => {
         setStreamState({ ...streamState, isCamOn: !streamState.isCamOn });
-        rtcState?.handleCameraOnClick();
+        handleCameraOnClick();
     }
-    //
     const { register, handleSubmit, reset } = useForm<IMessageForm>();
     const chatbox = useRef<HTMLDivElement>(null);
     const form = useRef<HTMLFormElement>(null);
     const handleMessageEntered = (event: React.KeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter") {
             event.preventDefault();
-            console.log(form.current)
             form.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         }
     }
@@ -216,28 +222,42 @@ export default () => {
             setMyNickname(userState.nickname || "");
             setRoom(userState.room || "");
         }
-        socket.on(socketEvent.JOIN_ROOM, (userInfo: IUserInfo) => {
+    }, []);
+    useEffect(() => {
+        if (!socket) return;
+        socket.on(socketEvent.JOIN_ROOM, async (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Join", content: { text: `${userInfo.nickname} joined this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
+            setEventState(prev => ({ ...prev, join: true }));
         });
         socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
-        })
+            peerFace.current!.srcObject = null;
+            makeConnection();
+        });
+        socket.on(socketEvent.OFFER, (offer: RTCSessionDescriptionInit) => setEventState(prev => ({ ...prev, offer })));
+        socket.on(socketEvent.ANSWER, (answer: RTCSessionDescriptionInit) => setEventState(prev => ({ ...prev, answer })));
+        socket.on(socketEvent.ICE, (ice: RTCIceCandidate) => setEventState(prev => ({ ...prev, ice })));
         socket.on(socketEvent.SEND_MESSAGE, ({ senderInfo, message }) => {
             const data: IMessage = { type: "Chat", content: { text: message, sender: { ...senderInfo } } };
             setMessages(prev => [...prev, data]);
         })
     }, [socket]);
-    useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages]);
     useEffect(() => {
-        if (room !== "") {
-            (async () => {
-                const result = await peerConnection({ room, myFace: myFace.current!, peerFace: peerFace.current! });
-                setRtcState(result);
-            })();
-        }
-    }, [room])
+        if (!peerFunctionState) return;
+        if (!(eventState.join || eventState.answer || eventState.offer || eventState.ice)) return;
+
+        if (eventState.join) peerFunctionState?.sendOffer(room);
+        if (eventState.offer) peerFunctionState?.sendAnswer(eventState.offer, room);
+        if (eventState.answer) peerFunctionState?.receiveAnswer(eventState.answer);
+        if (eventState.ice) peerFunctionState?.receiveIce(eventState.ice);
+
+        setEventState(prev => ({ ...prev, join: false, offer: null, answer: null, ice: null }));
+    }, [eventState, peerFunctionState]);
+    useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages]);
+    useEffect(() => { if (myStream) myFace!.current!.srcObject = myStream }, [myFace, myStream]);
+    useEffect(() => { if (peerStream) peerFace!.current!.srcObject = peerStream }, [peerFace, peerStream]);
     return (
         <Container>
             <VideoContainer>
@@ -247,11 +267,11 @@ export default () => {
                 </Videos>
                 <Settings>
                     <CameraSettings>
-                        <MuteButton onClick={handleMuteClick}>
+                        <MuteButton onClick={onMuteClick}>
                             {!streamState.isVolumnOn && <NoVolume><FontAwesomeIcon icon={faX} /></NoVolume>}
                             <FontAwesomeIcon icon={faVolumeUp} />
                         </MuteButton>
-                        <CamToggleButton onClick={handleCameraOnClick}>
+                        <CamToggleButton onClick={onCameraOnClick}>
                             {!streamState.isCamOn && <NoCam><FontAwesomeIcon icon={faX} /></NoCam>}
                             <FontAwesomeIcon icon={faCamera} />
                         </CamToggleButton>

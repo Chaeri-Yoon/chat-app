@@ -3,5 +3,8 @@ export const socketEvent = {
     LEAVE_ROOM: 'leave_room',
     UPDATE_ROOMLIST: 'update_rooms',
     RECEIVE_MESSAGE: 'receive_message',
-    SEND_MESSAGE: 'send_message'
+    SEND_MESSAGE: 'send_message',
+    OFFER: 'offer',
+    ANSWER: 'answer',
+    ICE: 'ice'
 }

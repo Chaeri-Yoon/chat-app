@@ -34,6 +34,15 @@ server.on("connection", socket => {
     socket.on(socketEvent.SEND_MESSAGE, ({ message, room }) => {
         socket.to(room).emit(socketEvent.SEND_MESSAGE, { senderInfo: socket.userInfo, message });
     });
+    socket.on(socketEvent.OFFER, (offer, room) => {
+        socket.to(room).emit('offer', offer);
+    });
+    socket.on(socketEvent.ANSWER, (answer, room) => {
+        socket.to(room).emit('answer', answer);
+    });
+    socket.on(socketEvent.ICE, (iceData, room) => {
+        socket.to(room).emit('ice', iceData);
+    })
     socket.on('disconnecting', () => {
         console.log(`${socket.id} is disconnecting`);
         socket.rooms.forEach(room => {

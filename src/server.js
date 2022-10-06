@@ -18,7 +18,7 @@ const server = new Server(httpServer, {
 const getPublicRooms = () => {
     const { sockets: { adapter: { sids, rooms } } } = server;
     const publicRooms = [];
-    rooms.forEach((_, key) => sids.get(key) === undefined && publicRooms.push(key));
+    rooms.forEach((_, key) => sids.get(key) === undefined && publicRooms.push({ name: key, size: rooms.get(key).size }));
     return publicRooms;
 }
 server.on("connection", socket => {

@@ -93,6 +93,12 @@ const SelectRoom = styled.select`
     color: ${styles.lightGrey};
     border: 1px ${styles.lightGrey} solid;
 `;
+const RoomOption = styled.option`
+    &:disabled{
+        background-color: rgba(255, 0, 0, 0.3);
+        color: red;
+    }
+`;
 interface IJoinForm {
     nickname: string;
     room: string;
@@ -101,7 +107,7 @@ export default () => {
     const navigate = useNavigate();
     const { register, handleSubmit, reset, setValue, getValues, formState: { errors, isValid } } = useForm<IJoinForm>({ mode: "onChange" });
     const [avatarNum, setAvatarNum] = useState(0);
-    const [roomList, setRoomList] = useState<string[]>();
+    const [roomList, setRoomList] = useState<{ name: string, size: number }[]>([]);
     const [roomJoinMode, setRoomJoinMode] = useState<'Create' | 'Select'>('Select');
     useEffect(() => {
         socket.on(socketEvent.UPDATE_ROOMLIST, ({ rooms }) => setRoomList(rooms));
@@ -116,7 +122,7 @@ export default () => {
         else if (roomJoinMode === 'Create') setRoomJoinMode('Select');
     }
     const isRoomnameValid = () => getValues("room") !== (roomJoinMode === 'Create' ? "" : "default") ? true : "Please select an existing room or create one.";
-    const isRoomnameDuplicated = () => !roomList?.includes(getValues("room")) ? true : "This room already exists.";
+    const isRoomnameDuplicated = () => roomList?.findIndex(room => room.name == getValues("room")) > -1 ? "This room already exists." : true;
     const onSubmit = (form: IJoinForm) => {
         const { nickname, room } = form;
         socket.emit(socketEvent.JOIN_ROOM, { nickname, avatarNum, room }, () => {
@@ -138,7 +144,7 @@ export default () => {
                     {roomJoinMode === 'Select' ? (
                         <SelectRoom {...register("room", { onChange: handleChangeChatroomMode, validate: isRoomnameValid })} defaultValue='default'>
                             <option value="default" disabled>--Select Room--</option>
-                            {roomList?.map(room => <option key={room} value={room}>{room}</option>)}
+                            {roomList?.map(room => <option key={room.name} value={room.name} disabled={room.size == 2}>{room.name} ( {room.size} / 2 )</option>)}
                             <option value="create">Create Room</option>
                         </SelectRoom>
                     ) : (

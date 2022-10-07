@@ -11,7 +11,8 @@ export const socketEvent = {
     ICE: 'ice'
 }
 export interface IUserInfo {
-    nickname: String;
+    id: string;
+    nickname: string;
     avatarNum: number;
 }
 export interface IMessage {

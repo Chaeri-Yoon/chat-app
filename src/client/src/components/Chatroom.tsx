@@ -30,14 +30,26 @@ const Videos = styled.div`
     justify-content: center;
     align-items: center;
     column-gap: 1em;
-    & > video{
+    & > div{
+        position: relative;
         width: 45%;
         aspect-ratio: 4 / 3;
-        background-color: #757575;
+        & > video{
+            width: 100%;
+            height: 100%;
+        }
+        & > span{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 0.4em 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-align: center;
+        }
     }
 `;
-const MyFace = styled.video``;
-const PeerFace = styled.video``;
 const Settings = styled.div`
     position: absolute;
     padding: 0 1em;
@@ -178,6 +190,7 @@ export default () => {
     // setMyNickname: For future function - change user's nickname
     const [myNickname, setMyNickname] = useState("");
     const [room, setRoom] = useState("");
+    const [members, setMembers] = useState<{ id: string, nickname: string }[]>([]);
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [eventState, setEventState] = useState<IEventFlag>({
         join: false,
@@ -228,11 +241,13 @@ export default () => {
         socket.on(socketEvent.JOIN_ROOM, async (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Join", content: { text: `${userInfo.nickname} joined this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
+            setMembers(prev => [...prev, { id: userInfo.id, nickname: userInfo.nickname }]);
             setEventState(prev => ({ ...prev, join: true }));
         });
         socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
+            setMembers(prev => prev.filter(member => member.id !== userInfo.id));
             peerFace.current!.srcObject = null;
             makeConnection();
         });
@@ -262,8 +277,14 @@ export default () => {
         <Container>
             <VideoContainer>
                 <Videos>
-                    <MyFace autoPlay={true} playsInline={true} ref={myFace} />
-                    <PeerFace autoPlay={true} playsInline={true} ref={peerFace} />
+                    <div>
+                        <video autoPlay={true} playsInline={true} ref={myFace} />
+                        <span>{myNickname}</span>
+                    </div>
+                    <div>
+                        <video autoPlay={true} playsInline={true} ref={peerFace} />
+                        {members.length > 0 && <span>{members[0].nickname}</span>}
+                    </div>
                 </Videos>
                 <Settings>
                     <CameraSettings>

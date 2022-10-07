@@ -25,9 +25,9 @@ server.on("connection", socket => {
     server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
     console.log(`${socket.id} is connected`);
     socket.on(socketEvent.JOIN_ROOM, ({ nickname, avatarNum, room }, done) => {
-        socket['userInfo'] = { nickname, avatarNum };
+        socket['userInfo'] = { id: socket.id, nickname, avatarNum };
         socket.join(room);
-        socket.to(room).emit(socketEvent.JOIN_ROOM, { nickname, avatarNum });
+        socket.to(room).emit(socketEvent.JOIN_ROOM, { id: socket.id, nickname, avatarNum });
         server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         done();
     });
@@ -46,7 +46,7 @@ server.on("connection", socket => {
     socket.on('disconnecting', () => {
         console.log(`${socket.id} is disconnecting`);
         socket.rooms.forEach(room => {
-            socket.to(room).emit(socketEvent.LEAVE_ROOM, { nickname: socket.userInfo?.nickname });
+            socket.to(room).emit(socketEvent.LEAVE_ROOM, { id: socket.id, nickname: socket.userInfo?.nickname });
             socket.leave(room);
             server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
         })

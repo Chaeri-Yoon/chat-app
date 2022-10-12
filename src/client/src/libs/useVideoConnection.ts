@@ -3,8 +3,8 @@ import socket from "../utils/client";
 import { socketEvent } from "../types";
 
 export interface IPeerFunctionState {
-    sendOffer: (room: string) => Promise<void>,
-    sendAnswer: (offer: RTCSessionDescriptionInit, room: string) => Promise<void>,
+    sendOffer: ({ peer, room }: { peer: string, room: string }) => Promise<void>,
+    sendAnswer: ({ peer, offer, room }: { peer: string, offer: RTCSessionDescriptionInit, room: string }) => Promise<void>,
     receiveAnswer: (answer: RTCSessionDescriptionInit) => void,
     receiveIce: (ice: RTCIceCandidate) => void,
 }
@@ -14,16 +14,16 @@ export default ({ room }: { room: string }) => {
     const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
     const [peerFunctionState, setPeerFunctionState] = useState<IPeerFunctionState>();
 
-    const sendOffer = async (room: string) => {
+    const sendOffer = async ({ peer, room }: { peer: string, room: string }) => {
         const offer = await peerConnection?.createOffer();
         peerConnection?.setLocalDescription(offer);
-        socket.emit(socketEvent.OFFER, offer, room)
+        socket.emit(socketEvent.OFFER, { offer, room, peer })
     }
-    const sendAnswer = async (offer: RTCSessionDescriptionInit, room: string) => {
+    const sendAnswer = async ({ peer, offer, room }: { peer: string, offer: RTCSessionDescriptionInit, room: string }) => {
         peerConnection?.setRemoteDescription(offer);
         const answer = await peerConnection?.createAnswer();
         peerConnection?.setLocalDescription(answer);
-        socket.emit(socketEvent.ANSWER, answer, room);
+        socket.emit(socketEvent.ANSWER, { answer, room, peer });
     }
     const receiveAnswer = (answer: RTCSessionDescriptionInit) => peerConnection?.setRemoteDescription(answer)
     const receiveIce = (ice: RTCIceCandidate) => peerConnection?.addIceCandidate(ice);

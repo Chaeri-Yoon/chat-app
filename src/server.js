@@ -21,6 +21,10 @@ const getPublicRooms = () => {
     rooms.forEach((_, key) => sids.get(key) === undefined && publicRooms.push({ name: key, size: rooms.get(key).size }));
     return publicRooms;
 }
+const getUserInfo = id => {
+    const { sockets: { sockets } } = server;
+    return sockets.get(id).userInfo;
+}
 server.on("connection", socket => {
     server.sockets.emit(socketEvent.UPDATE_ROOMLIST, { rooms: getPublicRooms() });
     console.log(`${socket.id} is connected`);
@@ -34,11 +38,13 @@ server.on("connection", socket => {
     socket.on(socketEvent.SEND_MESSAGE, ({ message, room }) => {
         socket.to(room).emit(socketEvent.SEND_MESSAGE, { senderInfo: socket.userInfo, message });
     });
-    socket.on(socketEvent.OFFER, (offer, room) => {
-        socket.to(room).emit('offer', offer);
+    socket.on(socketEvent.OFFER, ({ offer, room, peer: peerId }) => {
+        const peer = getUserInfo(peerId);
+        socket.to(room).emit('offer', { offer, peer });
     });
-    socket.on(socketEvent.ANSWER, (answer, room) => {
-        socket.to(room).emit('answer', answer);
+    socket.on(socketEvent.ANSWER, ({ answer, room, peer: peerId }) => {
+        const peer = getUserInfo(peerId);
+        socket.to(room).emit('answer', { answer, peer });
     });
     socket.on(socketEvent.ICE, (iceData, room) => {
         socket.to(room).emit('ice', iceData);

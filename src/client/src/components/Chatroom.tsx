@@ -46,6 +46,7 @@ const Videos = styled.div`
             padding: 0.4em 0;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
+            font-size: 0.75em;
             text-align: center;
         }
     }
@@ -190,14 +191,9 @@ export default () => {
     // setMyNickname: For future function - change user's nickname
     const [myNickname, setMyNickname] = useState("");
     const [room, setRoom] = useState("");
-    const [members, setMembers] = useState<{ id: string, nickname: string }[]>([]);
+    const [peer, setPeer] = useState<IUserInfo>({ id: '', nickname: '', avatarNum: 0 });
     const [messages, setMessages] = useState<IMessage[]>([]);
-    const [eventState, setEventState] = useState<IEventFlag>({
-        join: false,
-        offer: null,
-        answer: null,
-        ice: null,
-    });
+    const [eventState, setEventState] = useState<IEventFlag>({ join: false, offer: null, answer: null, ice: null });
 
     // Videocall
     const [streamState, setStreamState] = useState<IStreamState>({ isVolumnOn: true, isCamOn: true });
@@ -241,18 +237,22 @@ export default () => {
         socket.on(socketEvent.JOIN_ROOM, async (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Join", content: { text: `${userInfo.nickname} joined this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
-            setMembers(prev => [...prev, { id: userInfo.id, nickname: userInfo.nickname }]);
             setEventState(prev => ({ ...prev, join: true }));
         });
         socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
-            setMembers(prev => prev.filter(member => member.id !== userInfo.id));
-            peerFace.current!.srcObject = null;
+            if (peerFace.current) peerFace.current.srcObject = null;
             makeConnection();
         });
-        socket.on(socketEvent.OFFER, (offer: RTCSessionDescriptionInit) => setEventState(prev => ({ ...prev, offer })));
-        socket.on(socketEvent.ANSWER, (answer: RTCSessionDescriptionInit) => setEventState(prev => ({ ...prev, answer })));
+        socket.on(socketEvent.OFFER, ({ offer, peer }: { offer: RTCSessionDescriptionInit, peer: IUserInfo }) => {
+            setPeer(prev => ({ ...prev, ...peer }));
+            setEventState(prev => ({ ...prev, offer }));
+        });
+        socket.on(socketEvent.ANSWER, ({ answer, peer }: { answer: RTCSessionDescriptionInit, peer: IUserInfo }) => {
+            setPeer(prev => ({ ...prev, ...peer }));
+            setEventState(prev => ({ ...prev, answer }))
+        });
         socket.on(socketEvent.ICE, (ice: RTCIceCandidate) => setEventState(prev => ({ ...prev, ice })));
         socket.on(socketEvent.SEND_MESSAGE, ({ senderInfo, message }) => {
             const data: IMessage = { type: "Chat", content: { text: message, sender: { ...senderInfo } } };
@@ -263,16 +263,16 @@ export default () => {
         if (!peerFunctionState) return;
         if (!(eventState.join || eventState.answer || eventState.offer || eventState.ice)) return;
 
-        if (eventState.join) peerFunctionState?.sendOffer(room);
-        if (eventState.offer) peerFunctionState?.sendAnswer(eventState.offer, room);
+        if (eventState.join) peerFunctionState?.sendOffer({ peer: socket.id, room });
+        if (eventState.offer) peerFunctionState?.sendAnswer({ peer: socket.id, offer: eventState.offer, room });
         if (eventState.answer) peerFunctionState?.receiveAnswer(eventState.answer);
         if (eventState.ice) peerFunctionState?.receiveIce(eventState.ice);
 
         setEventState(prev => ({ ...prev, join: false, offer: null, answer: null, ice: null }));
     }, [eventState, peerFunctionState]);
     useEffect(() => chatbox?.current?.scrollTo({ top: chatbox?.current?.scrollHeight }), [messages]);
-    useEffect(() => { if (myStream) myFace!.current!.srcObject = myStream }, [myFace, myStream]);
-    useEffect(() => { if (peerStream) peerFace!.current!.srcObject = peerStream }, [peerFace, peerStream]);
+    useEffect(() => { if (myStream && myFace.current) myFace.current.srcObject = myStream }, [myFace, myStream]);
+    useEffect(() => { if (peerStream && peerFace?.current) peerFace.current.srcObject = peerStream }, [peer, peerStream]);
     return (
         <Container>
             <VideoContainer>
@@ -283,7 +283,7 @@ export default () => {
                     </div>
                     <div>
                         <video autoPlay={true} playsInline={true} ref={peerFace} />
-                        {members.length > 0 && <span>{members[0].nickname}</span>}
+                        {peer && <span>{peer.nickname}</span>}
                     </div>
                 </Videos>
                 <Settings>

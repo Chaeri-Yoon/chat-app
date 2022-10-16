@@ -242,6 +242,7 @@ export default () => {
         socket.on(socketEvent.LEAVE_ROOM, (userInfo: IUserInfo) => {
             const data: IMessage = { type: "Leave", content: { text: `${userInfo.nickname} left this room`, sender: { ...userInfo } } };
             setMessages(prev => [...prev, data]);
+            setPeer(prev => ({ ...prev, id: '', nickname: '', avatarNum: 0 }));
             if (peerFace.current) peerFace.current.srcObject = null;
             makeConnection();
         });

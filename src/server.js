@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
@@ -8,6 +9,7 @@ import { socketEvent } from './types';
 const app = express();
 app.use(express.static(path.join(__dirname, 'client/build')));
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, '/client/build/index.html')));
+app.use(cors())
 const httpServer = createServer(app);
 const server = new Server(httpServer, {
     cors: {
@@ -59,4 +61,4 @@ server.on("connection", socket => {
     })
 })
 
-httpServer.listen(process.env.SERVER_PORT, () => console.log(`Server is running on Port ${process.env.SERVER_PORT}`));
+httpServer.listen(3000, () => console.log(`Server is running on Port ${process.env.SERVER_PORT}`));

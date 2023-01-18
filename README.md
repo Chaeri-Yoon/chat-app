@@ -3,7 +3,6 @@
 <h2 style="border-bottom: 1px solid rgb(204, 204, 204)"> Description </h2>
 
 This is a real-time chat application which provides online communication through not only exchanging messages but also video call between two users.
-
 https://chat-app-0tg7.onrender.com
 
 <h2 style="border-bottom: 1px solid rgb(204, 204, 204)"> Built With </h2>
@@ -55,9 +54,6 @@ https://chat-app-0tg7.onrender.com
     <br>
 * **Message chat**
     * When another user enters into the chat room, it will inform you through a message.
-    <img src="https://i.postimg.cc/26LmCt1s/Chat-App-6.jpg" style="border: 1px solid rgb(0, 0, 0)"/>
-    <br>
-
     * Users can communicate through messages
     <img src="https://i.postimg.cc/wjBjS0kp/Chat-App-8.jpg" style="border: 1px solid rgb(0, 0, 0)"/>
 

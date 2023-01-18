@@ -22,40 +22,47 @@ https://chat-app-0tg7.onrender.com
     ```
 
 ### Executing program
-    # Build client project
+#### Build client project
     cd src/client
     npm run build
 
-    # Start server
+#### Start server
     npm run server
 
 ### Join a chat room
 * Join a chat room with your own username and your selection of avatar icon.
-    <img src="https://i.postimg.cc/656FBS4y/Chat-App-2.jpg" style="border: 1px solid rgb(0, 0, 0)"/>   
-<br>
+    <br>
+    <img src="https://i.postimg.cc/656FBS4y/Chat-App-2.jpg" style="border: 1px solid black" width="40%"/>   
+
 * You can join a chatroom by either selecting from the list of existing chat rooms or creating your own. Once you have had an username and a chatroom to join, the joining button will be activated.
-    <img src="https://i.postimg.cc/pVn8SXLZ/Chat-App-4.jpg" style="border: 1px solid rgb(0, 0, 0)"/>   
-<br>
+    <br>
+    <img src="https://i.postimg.cc/pVn8SXLZ/Chat-App-4.jpg" style="border: 1px solid black" width="40%"/>   
+
 * If there is two users in a certain chat room, it means the room is full of capacity and so no more user is allowed to enter until there becomes any seat available.
-    <img src="https://i.postimg.cc/pXJ9N9bD/Chat-App-9.jpg" style="border: 1px solid rgb(0, 0, 0)"/>  
-<br>
+    <br>
+    <img src="https://i.postimg.cc/pXJ9N9bD/Chat-App-9.jpg" style="border: 1px solid black" width="40%"/>  
+
 ### In a chat room
-* **Video call**
-    * Once you have accepted its access to your camera and mic, it will show your camera screen. 
-    <img src="https://i.postimg.cc/4dJQzCgc/Chat-App-5.jpg"/>
-    <br>
-    * **Peer video call**
-        When there is another member in the same chat room and they have granted access to their media devices, you can communicate through video call.
-        <img src="https://i.postimg.cc/26LmCt1s/Chat-App-6.jpg" style="border: 1px solid rgb(0, 0, 0)"/>   
-    <br>
-    * **Media device access**
-        When you click buttons to deactivate either camera or mic, the application no longer accesses that device.
-        <img src="https://i.postimg.cc/D0Q9Z3nM/Chat-App-7.jpg" style="border: 1px solid rgb(0, 0, 0)"/>    
-    <br>
-* **Message chat**
-    * When another user enters into the chat room, it will inform you through a message.
-    * Users can communicate through messages
-    <img src="https://i.postimg.cc/wjBjS0kp/Chat-App-8.jpg" style="border: 1px solid rgb(0, 0, 0)"/>
+#### Video call
+Once you have accepted its access to your camera and mic, it will show your camera screen. 
+<br>
+<img src="https://i.postimg.cc/4dJQzCgc/Chat-App-5.jpg" width="60%"/>
+
+#### Peer video call**
+When there is another member in the same chat room and they have granted access to their media devices, you can communicate through video call.
+<br>
+<img src="https://i.postimg.cc/26LmCt1s/Chat-App-6.jpg" style="border: 1px solid rgb(0, 0, 0)" width="80%"/>   
+
+#### Media device access**
+When you click buttons to deactivate either camera or mic, the application no longer accesses that device.
+<br>
+<img src="https://i.postimg.cc/D0Q9Z3nM/Chat-App-7.jpg" style="border: 1px solid rgb(0, 0, 0)" width="80%"/>    
+
+#### Message chat
+When another user enters into the chat room, it will inform you through a message.
+Users can communicate through messages
+<br>
+<img src="https://i.postimg.cc/wjBjS0kp/Chat-App-8.jpg" style="border: 1px solid rgb(0, 0, 0)" width="30%"/>
 
 <h2 style="border-bottom: 1px solid rgb(204, 204, 204)"> Roadmap </h2>
 

@@ -42,7 +42,7 @@ https://chat-app-0tg7.onrender.com
 ### In a chat room
 * **Video call**
     * Once you have accepted its access to your camera and mic, it will show your camera screen. 
-    [![Chat-App-5.jpg](https://i.postimg.cc/4dJQzCgc/Chat-App-5.jpg)](https://postimg.cc/kVpSmpDM)
+    <img src="https://i.postimg.cc/4dJQzCgc/Chat-App-5.jpg"/>
     <br>
     * **Peer video call**
         When there is another member in the same chat room and they have granted access to their media devices, you can communicate through video call.
